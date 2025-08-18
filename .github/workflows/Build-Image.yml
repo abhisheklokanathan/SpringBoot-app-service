@@ -138,9 +138,16 @@ jobs:
           role-to-assume: ${{ secrets.IAM_ROLE }}
           aws-region: us-east-1
 
+      - name: Debug IMAGE_URL
+        run: |
+          echo "IMAGE_URL: ${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
+
       - name: Replace springboot-app.json placeholders
         run: |
           IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
+          echo "Replacing placeholder in springboot-app.json with IMAGE_URL: $IMAGE_URL"
+          cat springboot-app.json  # Debugging to verify before
+          # Ensure proper escaping of special characters in the sed command
           sed -i "s|\${docker_image_url}|$IMAGE_URL|g" springboot-app.json
           cat springboot-app.json  # Debugging to verify replacement
 
