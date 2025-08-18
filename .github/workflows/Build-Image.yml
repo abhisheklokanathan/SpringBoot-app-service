@@ -151,7 +151,7 @@ jobs:
         run: |
           IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
           cat springboot-app.json
-          sed -i "s|\${docker_image_url}|${IMAGE_URL}|g" springboot-app.json
+          sed -i "s|\${docker_image_url}|$IMAGE_URL|g" springboot-app.json
           cat springboot-app.json
 
       - name: Deploy to Amazon ECS
