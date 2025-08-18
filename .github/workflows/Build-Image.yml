@@ -75,11 +75,12 @@ jobs:
     - name: Create ECR repository (if not exists)
       run: >
         SERVICE_NAME="my-service"
-
-        aws ecr describe-repositories --repository-names $SERVICE_NAME \
-
-        || aws ecr create-repository --repository-name $SERVICE_NAME --region
-        us-east-1
+        if aws ecr describe-repositories --repository-names "$SERVICE_NAME" > /dev/null 2>&1; then
+          echo "ECR repository $SERVICE_NAME already exists, skipping creation."
+        else
+          echo "Creating ECR repository $SERVICE_NAME..."
+          aws ecr create-repository --repository-name "$SERVICE_NAME" --region us-east-1
+        fi
     - name: Log in to Amazon ECR
       run: >
         AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output
