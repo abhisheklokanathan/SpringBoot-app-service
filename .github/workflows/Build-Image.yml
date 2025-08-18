@@ -138,15 +138,15 @@ jobs:
           role-to-assume: ${{ secrets.IAM_ROLE }}
           aws-region: us-east-1
 
-      - name: Replace taskdefinition.json placeholders
+      - name: Replace springboot-app.json placeholders
         run: |
           IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
-          sed -i "s|\${docker_image_url}|${IMAGE_URL}|g" taskdefinition.json
+          sed -i "s|\${docker_image_url}|${IMAGE_URL}|g" springboot-app.json
 
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: taskdefinition.json
+          task-definition: springboot-app.json
           service: springbootapp
           cluster: Production-ECS-Cluster
           wait-for-service-stability: true
