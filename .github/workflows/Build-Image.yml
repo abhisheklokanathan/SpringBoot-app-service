@@ -140,7 +140,8 @@ jobs:
 
       - name: Debug IMAGE_URL
         run: |
-          echo "IMAGE_URL: ${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
+          IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
+          echo "IMAGE_URL: $IMAGE_URL"
 
       - name: Replace springboot-app.json placeholders
         run: |
