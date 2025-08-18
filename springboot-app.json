@@ -1,0 +1,27 @@
+[
+  {
+    "name": "springbootapp",
+    "image": "${docker_image_url}",
+    "essential": true,
+    "memory": 1024,
+    "environment": [
+      {
+        "name": "spring_profiles_active",
+        "value": "default"
+      }
+    ],
+    "portMappings": [
+      {
+        "containerPort": 8080
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "springbootapp-LogGroup",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "springbootapp-LogGroup-stream"
+      }
+    }
+  }
+]
