@@ -47,6 +47,15 @@ jobs:
         with:
           name: app-jar
           path: target/*.jar
+
+      - name: Tag the commit
+        if: github.ref == 'refs/heads/main' # Only tag on main
+        run: |
+          VERSION=${{ needs.Get-Tag-Version.outputs.version }}
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
           
   Build-Image-Publish-ECR:
     needs:
@@ -93,29 +102,18 @@ jobs:
         aws ecr get-login-password --region us-east-1 | docker login --username
         AWS --password-stdin "$ECR_REPO_URL"
     - name: Build Docker image
-      run: >
+      run: |
         SERVICE_NAME="my-service"
-
-        SERVICE_TAG="${{ needs.Get-Tag-Version.outputs.version }}"
-
-        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output
-        text)
-
+        VERSION="v${{ needs.Get-Tag-Version.outputs.version }}"
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
 
-
-        docker build -t $SERVICE_NAME:$SERVICE_TAG .
-
-        docker tag $SERVICE_NAME:$SERVICE_TAG $ECR_REPO_URL:$SERVICE_TAG
+        docker build -t $SERVICE_NAME:$VERSION .
+        docker tag $SERVICE_NAME:$VERSION $ECR_REPO_URL:$VERSION
     - name: Push to Amazon ECR
-      run: >
+      run: |
         SERVICE_NAME="my-service"
-
-        SERVICE_TAG="${{ needs.Get-Tag-Version.outputs.version }}"
-
-        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output
-        text)
-
+        VERSION="v${{ needs.Get-Tag-Version.outputs.version }}"
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
-
-        docker push $ECR_REPO_URL:$SERVICE_TAG
+        docker push $ECR_REPO_URL:$VERSION
