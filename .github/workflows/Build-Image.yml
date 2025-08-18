@@ -116,4 +116,37 @@ jobs:
         VERSION="v${{ needs.Get-Tag-Version.outputs.version }}"
         AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
-        docker push $ECR_REPO_URL:$VERSION
+        IMAGE_URL="${ECR_REPO_URL}:${VERSION}"
+        docker build -t $SERVICE_NAME:$VERSION .
+        docker tag $SERVICE_NAME:$VERSION $IMAGE_URL
+        docker push $IMAGE_URL
+        echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
+        
+  Deploy-to-ECS:
+    needs:
+      - Get-Tag-Version
+      - Build-CI
+      - Build-Image-Publish-ECR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: AWS configure credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+          aws-region: us-east-1
+
+      - name: Replace taskdefinition.json placeholders
+        run: |
+          IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
+          sed -i "s|\${docker_image_url}|${IMAGE_URL}|g" taskdefinition.json
+
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: taskdefinition.json
+          service: springbootapp
+          cluster: Production-ECS-Cluster
+          wait-for-service-stability: true
