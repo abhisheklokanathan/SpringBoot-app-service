@@ -1,7 +1,7 @@
 {
   "family": "springbootapp",
   "networkMode": "awsvpc",
-  "executionRoleArn": "arn:aws:iam::761018887005:role/github-personal-oidc",
+  "executionRoleArn": "arn:aws:iam::761018887005:role/ECS-test-role",
   "containerDefinitions": [
     {
       "name": "springbootapp",
