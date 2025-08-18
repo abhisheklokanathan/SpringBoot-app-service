@@ -62,6 +62,8 @@ jobs:
     - Get-Tag-Version
     - Build-CI
     runs-on: ubuntu-latest
+    outputs:
+        image_url: ${{ steps.push_image.outputs.image_url }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
