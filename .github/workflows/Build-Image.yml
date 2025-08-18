@@ -32,3 +32,19 @@ jobs:
             VERSION="${MAJOR}.${MINOR}.${PATCH}"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+  Build-CI:
+    needs: Get-Tag-Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'  # Adjust if your project uses another version
+
+      - name: Build with Maven
+        run: sh mvnw clean install
