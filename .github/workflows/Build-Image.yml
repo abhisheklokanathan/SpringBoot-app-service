@@ -150,9 +150,9 @@ jobs:
       - name: Replace springboot-app.json placeholders
         run: |
           IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
-          cat taskdefinition.json
+          cat springboot-app.json
           sed -i "s|\${docker_image_url}|${IMAGE_URL}|g" springboot-app.json
-          cat taskdefinition.json
+          cat springboot-app.json
 
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
