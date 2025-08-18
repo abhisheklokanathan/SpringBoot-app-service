@@ -129,6 +129,12 @@ jobs:
       - Build-Image-Publish-ECR
     runs-on: ubuntu-latest
     steps:
+      - name: Cleanup workspace before checkout
+        run: |
+          echo "Cleaning up previous files..."
+          sudo rm -rf $GITHUB_WORKSPACE/*
+          ls -al
+          
       - name: Checkout source
         uses: actions/checkout@v4
         with:
