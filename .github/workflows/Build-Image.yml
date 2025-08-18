@@ -94,6 +94,8 @@ jobs:
           ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "$ECR_REPO_URL"
 
+
+    
       - name: Build Docker image
         run: |
           SERVICE_NAME="my-service"
@@ -101,7 +103,7 @@ jobs:
           AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
 
-          docker build -t $SERVICE_NAME:$SERVICE_TAG infrastructure/
+          docker build -t $SERVICE_NAME:$SERVICE_TAG -f Dockerfile .
           docker tag $SERVICE_NAME:$SERVICE_TAG $ECR_REPO_URL:$SERVICE_TAG
 
       - name: Push to Amazon ECR
