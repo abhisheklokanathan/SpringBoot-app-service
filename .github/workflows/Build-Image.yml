@@ -49,7 +49,7 @@ jobs:
       - name: Build with Maven
         run: sh mvnw clean install
         
-    Build-Image-Publish-ECR:
+  Build-Image-Publish-ECR:
       needs: [Get-Tag-Version, Build-CI]
       runs-on: ubuntu-latest
       steps:
@@ -89,14 +89,14 @@ jobs:
              AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
              ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
 
-        docker build -t $SERVICE_NAME:$SERVICE_TAG infrastructure/
-        docker tag $SERVICE_NAME:$SERVICE_TAG $ECR_REPO_URL:$SERVICE_TAG
+             docker build -t $SERVICE_NAME:$SERVICE_TAG infrastructure/
+             docker tag $SERVICE_NAME:$SERVICE_TAG $ECR_REPO_URL:$SERVICE_TAG
 
-    - name: Push to Amazon ECR
-      run: |
-        SERVICE_NAME="my-service"
-        SERVICE_TAG="${{ needs.Get-Tag-Version.outputs.version }}"
-        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-        ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
+         - name: Push to Amazon ECR
+           run: |
+             SERVICE_NAME="my-service"
+             SERVICE_TAG="${{ needs.Get-Tag-Version.outputs.version }}"
+             AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+             ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
 
-        docker push $ECR_REPO_URL:$SERVICE_TAG
+             docker push $ECR_REPO_URL:$SERVICE_TAG
