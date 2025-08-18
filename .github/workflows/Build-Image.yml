@@ -56,14 +56,17 @@ jobs:
     steps:
     - name: Checkout source
       uses: actions/checkout@v4
+
+    - name: Download jar artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: app-jar
+
     - name: Copy JAR to repo root
-      run: >
-        SERVICE_NAME="my-service"
-
-        # Create jar name matching Dockerfile expectation
-
-        find target/ -type f -name "*.jar" -not -name "*sources.jar" -exec cp {}
-        springbootapp.jar \;
+      run: |
+        # The jar is downloaded here - find and rename to springbootapp.jar
+        find . -type f -name "*.jar" -not -name "*sources.jar" -exec cp {} springbootapp.jar \;
+        
     - name: AWS configure credentials
       uses: aws-actions/configure-aws-credentials@v4.1.0
       with:
