@@ -1,23 +1,19 @@
 name: Deploy My Docker Application
-
-on:
-  workflow_dispatch:
-
+'on':
+  workflow_dispatch: null
 permissions:
   id-token: write
-  contents: write    
-
+  contents: write
 jobs:
   Get-Tag-Version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.get_version.outputs.version }}    
-    steps:  
+      version: '${{ steps.get_version.outputs.version }}'
+    steps:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required to get all tags
-          
+          fetch-depth: 0
       - name: Get latest semantic version
         id: get_version
         run: |
@@ -33,84 +29,89 @@ jobs:
             VERSION="${MAJOR}.${MINOR}.${PATCH}"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-
   Build-CI:
     needs: Get-Tag-Version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '8'  # Adjust if your project uses another version
-
+          distribution: temurin
+          java-version: '8'
       - name: Build with Maven
         run: sh mvnw clean install
-
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-jar
           path: target/*.jar
-
+          
   Build-Image-Publish-ECR:
-    needs: [Get-Tag-Version, Build-CI]
+    needs:
+    - Get-Tag-Version
+    - Build-CI
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+    - name: Checkout source
+      uses: actions/checkout@v4
+    - name: Copy JAR to repo root
+      run: >
+        SERVICE_NAME="my-service"
 
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-jar
+        # Create jar name matching Dockerfile expectation
 
-      - name: Copy built jar to infrastructure
-        run: |
-          SERVICE_NAME="my-service"
-          mkdir -p infrastructure
-          find . -type f -name "*.jar" -not -name "*sources.jar" \
-            -exec cp {} infrastructure/${SERVICE_NAME}.jar \;
+        find target/ -type f -name "*.jar" -not -name "*sources.jar" -exec cp {}
+        springbootapp.jar \;
+    - name: AWS configure credentials
+      uses: aws-actions/configure-aws-credentials@v4.1.0
+      with:
+        role-to-assume: '${{ secrets.IAM_ROLE }}'
+        aws-region: us-east-1
+    - name: Create ECR repository (if not exists)
+      run: >
+        SERVICE_NAME="my-service"
 
-      - name: AWS configure credentials
-        uses: aws-actions/configure-aws-credentials@v4.1.0
-        with:
-          role-to-assume: ${{ secrets.IAM_ROLE }}
-          aws-region: us-east-1
+        aws ecr describe-repositories --repository-names $SERVICE_NAME \
 
-      - name: Create ECR repository (if not exists)
-        run: |
-          SERVICE_NAME="my-service"
-          aws ecr describe-repositories --repository-names $SERVICE_NAME \
-          || aws ecr create-repository --repository-name $SERVICE_NAME --region us-east-1
+        || aws ecr create-repository --repository-name $SERVICE_NAME --region
+        us-east-1
+    - name: Log in to Amazon ECR
+      run: >
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output
+        text)
 
-      - name: Log in to Amazon ECR
-        run: |
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          SERVICE_NAME="my-service"
-          ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
-          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "$ECR_REPO_URL"
+        SERVICE_NAME="my-service"
+
+        ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
+
+        aws ecr get-login-password --region us-east-1 | docker login --username
+        AWS --password-stdin "$ECR_REPO_URL"
+    - name: Build Docker image
+      run: >
+        SERVICE_NAME="my-service"
+
+        SERVICE_TAG="${{ needs.Get-Tag-Version.outputs.version }}"
+
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output
+        text)
+
+        ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
 
 
-    
-      - name: Build Docker image
-        run: |
-          SERVICE_NAME="my-service"
-          SERVICE_TAG="${{ needs.Get-Tag-Version.outputs.version }}"
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
+        docker build -t $SERVICE_NAME:$SERVICE_TAG .
 
-          docker build -t $SERVICE_NAME:$SERVICE_TAG -f Dockerfile .
-          docker tag $SERVICE_NAME:$SERVICE_TAG $ECR_REPO_URL:$SERVICE_TAG
+        docker tag $SERVICE_NAME:$SERVICE_TAG $ECR_REPO_URL:$SERVICE_TAG
+    - name: Push to Amazon ECR
+      run: >
+        SERVICE_NAME="my-service"
 
-      - name: Push to Amazon ECR
-        run: |
-          SERVICE_NAME="my-service"
-          SERVICE_TAG="${{ needs.Get-Tag-Version.outputs.version }}"
-          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
+        SERVICE_TAG="${{ needs.Get-Tag-Version.outputs.version }}"
 
-          docker push $ECR_REPO_URL:$SERVICE_TAG
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output
+        text)
+
+        ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
+
+        docker push $ECR_REPO_URL:$SERVICE_TAG
