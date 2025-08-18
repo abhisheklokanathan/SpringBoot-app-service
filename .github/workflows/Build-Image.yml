@@ -131,6 +131,9 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
 
       - name: AWS configure credentials
         uses: aws-actions/configure-aws-credentials@v4.1.0
