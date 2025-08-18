@@ -73,7 +73,7 @@ jobs:
         role-to-assume: '${{ secrets.IAM_ROLE }}'
         aws-region: us-east-1
     - name: Create ECR repository (if not exists)
-      run: >
+      run: |
         SERVICE_NAME="my-service"
         if aws ecr describe-repositories --repository-names "$SERVICE_NAME" > /dev/null 2>&1; then
           echo "ECR repository $SERVICE_NAME already exists, skipping creation."
