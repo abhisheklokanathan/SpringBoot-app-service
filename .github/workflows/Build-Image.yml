@@ -83,7 +83,7 @@ jobs:
         aws-region: us-east-1
     - name: Create ECR repository (if not exists)
       run: |
-        SERVICE_NAME="my-service"
+        SERVICE_NAME="springbootapp"
         if aws ecr describe-repositories --repository-names "$SERVICE_NAME" > /dev/null 2>&1; then
           echo "ECR repository $SERVICE_NAME already exists, skipping creation."
         else
@@ -95,7 +95,7 @@ jobs:
         AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output
         text)
 
-        SERVICE_NAME="my-service"
+        SERVICE_NAME="springbootapp"
 
         ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
 
@@ -103,7 +103,7 @@ jobs:
         AWS --password-stdin "$ECR_REPO_URL"
     - name: Build Docker image
       run: |
-        SERVICE_NAME="my-service"
+        SERVICE_NAME="springbootapp"
         VERSION="v${{ needs.Get-Tag-Version.outputs.version }}"
         AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
@@ -112,7 +112,7 @@ jobs:
         docker tag $SERVICE_NAME:$VERSION $ECR_REPO_URL:$VERSION
     - name: Push to Amazon ECR
       run: |
-        SERVICE_NAME="my-service"
+        SERVICE_NAME="springbootapp"
         VERSION="v${{ needs.Get-Tag-Version.outputs.version }}"
         AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         ECR_REPO_URL="${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/${SERVICE_NAME}"
