@@ -112,6 +112,7 @@ jobs:
           docker tag $SERVICE_NAME:$VERSION $ECR_REPO_URL:$VERSION
 
       - name: Push to Amazon ECR
+        id: push_image
         run: |
           SERVICE_NAME="springbootapp"
           VERSION="v${{ needs.Get-Tag-Version.outputs.version }}"
