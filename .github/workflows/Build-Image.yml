@@ -155,12 +155,12 @@ jobs:
           # Ensure proper escaping of special characters in the sed command
           sed -i "s|\${docker_image_url}|$IMAGE_URL|g" springboot-app.json
           cat springboot-app.json  # Debugging to verify replacement
-          aws ecs create-service   --cluster Production-ECS-Cluster   --service-name springbootapp   --task-definition springbootapp   --desired-count 1   --launch-type FARGATE   --network-configuration "awsvpcConfiguration={subnets=[subnet-0532b3e0932821801,subnet-099a0fd72e9ab05c7],securityGroups=[sg-0963d87b80d145533],assignPublicIp=ENABLED}"
+          aws ecs create-service   --cluster Production-Fargate-Cluster  --service-name springbootapp   --task-definition springbootapp   --desired-count 1   --launch-type FARGATE   --network-configuration "awsvpcConfiguration={subnets=[subnet-02c6890342093e849,subnet-0c87f16f51d766f9a],securityGroups=[sg-0c532848862b74750],assignPublicIp=ENABLED}"
 
       - name: Deploy to Amazon ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: springboot-app.json
           service: springbootapp
-          cluster: Production-ECS-Cluster
+          cluster: Production-Fargate-Cluster 
           wait-for-service-stability: true
