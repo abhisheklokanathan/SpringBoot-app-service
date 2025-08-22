@@ -147,14 +147,14 @@ jobs:
           IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
           echo "IMAGE_URL: $IMAGE_URL"
 
-      # - name: Replace springboot-app.json placeholders
-      #   run: |
-      #     IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
-      #     echo "Replacing placeholder in springboot-app.json with IMAGE_URL: $IMAGE_URL"
-      #     cat springboot-app.json  # Debugging to verify before
-      #     # Ensure proper escaping of special characters in the sed command
-      #     sed -i "s|\${docker_image_url}|$IMAGE_URL|g" springboot-app.json
-      #     cat springboot-app.json  # Debugging to verify replacement
+      - name: Replace springboot-app.json placeholders
+        run: |
+          IMAGE_URL="${{ needs.Build-Image-Publish-ECR.outputs.image_url }}"
+          echo "Replacing placeholder in springboot-app.json with IMAGE_URL: $IMAGE_URL"
+          cat springboot-app.json  # Debugging to verify before
+          # Ensure proper escaping of special characters in the sed command
+          sed -i "s|\${docker_image_url}|$IMAGE_URL|g" springboot-app.json
+          cat springboot-app.json  # Debugging to verify replacement
       #     aws ecs create-service   --cluster Production-Fargate-Cluster  --service-name springbootapp   --task-definition springbootapp   --desired-count 1   --launch-type FARGATE   --network-configuration "awsvpcConfiguration={subnets=[subnet-02c6890342093e849,subnet-0c87f16f51d766f9a],securityGroups=[sg-0c532848862b74750],assignPublicIp=ENABLED}"
 
       - name: Deploy to Amazon ECS
