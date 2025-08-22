@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TestController {
 
-    @GetMapping(path = "/test")
+    @GetMapping(path = "/")
     public ResponseEntity<String> testMethod() {
-        return ResponseEntity.ok("Hello from Spring Boot App running on AWS ECS! From Abhishek");
+        return ResponseEntity.ok("Hello from Spring Boot App running on AWS ECS!");
     }
 }
