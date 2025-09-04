@@ -162,5 +162,5 @@ jobs:
         with:
           task-definition: springboot-app.json
           service: springbootapp
-          cluster: Production-ECS-Cluster
+          cluster: Production-Fargate-Cluster
           wait-for-service-stability: true
